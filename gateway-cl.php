@@ -164,3 +164,49 @@ add_shortcode('gatewaycl-tracking-widget', function () {
         </table>
     ";
 });
+
+add_shortcode('gatewaycl-export-schedule', function () {
+    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 1);
+    wp_enqueue_style('gateway-cl');
+
+    $month_year = date('F Y', time());
+
+    return "
+        <table width=\"100%\" class=\"gatewaycl-export-schedule\">
+            <tr class=\"gatewaycl-export-schedule-form\">
+                <td>
+                    <select name=\"origin_name\">
+                        <option value=\"JAKARTA\">JAKARTA</option>
+                    </select>
+                    <select name=\"destination_name\">
+                        <option value=\"SYDNEY\">SYDNEY</option>
+                    </select>
+                    <select name=\"etd\">
+                        <option value=\"04-05-2024\">04-05-2024</option>
+                    </select>
+                    <input type=\"submit\" name=\"search\" value=\"Search\">
+                    <input type=\"reset\" value=\"Reset\">
+                </td>
+            </tr>
+            <tr class=\"gatewaycl-export-schedule-month-year\">
+                <td><h3>{$month_year}</h3></td>
+            </tr>
+            <tr class=\"gatewaycl-export-schedule-departure\">
+                <td>
+                    <div>
+                        Departure From
+                        <select name=\"origin_name\">
+                            <option value=\"JAKARTA\">JAKARTA</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr class=\"gatewaycl-export-schedule-static-message\">
+                <td>
+                    The estimated schedule is considered for information purpose only and the Carrier may update, revise this schedule from time to time without any prior notice.
+                </td>
+            </tr>
+            <tr class=\"gatewaycl-export-schedule-tables\"></tr>
+        </table>
+    ";
+});

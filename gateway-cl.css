@@ -32,7 +32,9 @@ table#gatewaycl_tracking [name="code"] {
     width: 50%;
 }
 
-table#gatewaycl_tracking [name="search"] {
+table#gatewaycl_tracking [name="search"],
+table.gatewaycl-export-schedule [type="submit"],
+table.gatewaycl-export-schedule [type="reset"] {
     background-color: #fef001;
     color: #214099;
     padding: 5px 10px;
@@ -54,4 +56,32 @@ table#gatewaycl_tracking [name="search"] {
 
 .from-to td:nth-child(2) {
     vertical-align: baseline;
+}
+
+.gatewaycl-export-schedule-form {
+    text-align: center;
+}
+
+table.gatewaycl-export-schedule select {
+    padding: 12px;
+}
+
+.gatewaycl-export-schedule-month-year td {
+    text-align: center;
+    padding: 20px 0 0;
+}
+
+.gatewaycl-export-schedule-departure td {
+    padding: 0 30%;
+    text-align: center;
+}
+
+.gatewaycl-export-schedule-departure div {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    padding: 20px 0;
+}
+
+.gatewaycl-export-schedule-static-message {
+    color: red;
 }
