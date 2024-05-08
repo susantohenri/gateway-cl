@@ -105,3 +105,15 @@ table.gatewaycl-export-schedule select {
 .gatewaycl-export-schedule-tables .data td {
     text-align: center;
 }
+
+.gatewaycl-export-schedule-tables .table-direct {
+    width: 49%;
+}
+
+.gatewaycl-export-schedule-tables td table:nth-child(odd) {
+    float: right;
+}
+
+.gatewaycl-export-schedule-tables td table:nth-child(even) {
+    float: left;
+}

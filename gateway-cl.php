@@ -172,18 +172,19 @@ add_shortcode('gatewaycl-export-schedule', function () {
     $month_year = date('F Y', time());
 
     $schedule = gateway_cl_get_schedule();
-    $tables = [];
+    $tables_via = [];
+    $tables_direct = [];
     $tables_html = '';
 
     $via = $schedule->data[0]->via;
     foreach (array_values(array_unique(array_map(function ($record) {
         return $record->destination_name;
     }, $via))) as $table_title) {
-        $tables[$table_title] = array_values(array_filter($via, function ($record) use ($table_title) {
+        $tables_via[$table_title] = array_values(array_filter($via, function ($record) use ($table_title) {
             return $table_title = $record->destination_name;
         }));
     }
-    foreach ($tables as $table_title => $records) {
+    foreach ($tables_via as $table_title => $records) {
         $tables_html .= "<table>";
         $tables_html .= "<tr><td colspan=\"9\" class=\"table-title\">{$table_title}</td></tr>";
 
@@ -210,9 +211,30 @@ add_shortcode('gatewaycl-export-schedule', function () {
     foreach (array_values(array_unique(array_map(function ($record) {
         return $record->destination_name;
     }, $direct))) as $table_title) {
-        $tables[$table_title] = array_values(array_filter($direct, function ($record) use ($table_title) {
+        $tables_direct[$table_title] = array_values(array_filter($direct, function ($record) use ($table_title) {
             return $table_title = $record->destination_name;
         }));
+    }
+    foreach ($tables_direct as $table_title => $records) {
+        $tables_html .= "<table class=\"table-direct\">";
+        $tables_html .= "<tr><td colspan=\"5\" class=\"table-title\">{$table_title}</td></tr>";
+
+        $tables_html .= "<tr class=\"column-name\">";
+        foreach (['VESSEL', 'VOY', 'STF/CLS', 'ETD', 'ETA'] as $thead) {
+            $tables_html .= "<td>{$thead}</td>";
+        }
+        $tables_html .= "</tr>";
+
+        foreach ($records as $record) {
+            $tables_html .= "<tr class=\"data\">";
+            foreach (['vessel', 'voyage', 'closing_date', 'etd', 'eta'] as $attribute) {
+                if (in_array($attribute, ['closing_date', 'etd', 'eta'])) $record->$attribute = date('d M', strtotime($record->$attribute));
+                $tables_html .= "<td>{$record->$attribute}</td>";
+            }
+            $tables_html .= "</tr>";
+        }
+
+        $tables_html .= "</table>";
     }
 
     return "
