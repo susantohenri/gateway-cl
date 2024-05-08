@@ -85,3 +85,23 @@ table.gatewaycl-export-schedule select {
 .gatewaycl-export-schedule-static-message {
     color: red;
 }
+
+.gatewaycl-export-schedule-tables table td {
+    border: 1px solid black;
+}
+
+.gatewaycl-export-schedule-tables .table-title {
+    text-align: center;
+    background-color: #fef001;
+    font-weight: bolder;
+}
+
+.gatewaycl-export-schedule-tables .column-name {
+    background-color: #214099;
+    color: white;
+    text-align: center;
+}
+
+.gatewaycl-export-schedule-tables .data td {
+    text-align: center;
+}

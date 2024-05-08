@@ -171,6 +171,50 @@ add_shortcode('gatewaycl-export-schedule', function () {
 
     $month_year = date('F Y', time());
 
+    $schedule = gateway_cl_get_schedule();
+    $tables = [];
+    $tables_html = '';
+
+    $via = $schedule->data[0]->via;
+    foreach (array_values(array_unique(array_map(function ($record) {
+        return $record->destination_name;
+    }, $via))) as $table_title) {
+        $tables[$table_title] = array_values(array_filter($via, function ($record) use ($table_title) {
+            return $table_title = $record->destination_name;
+        }));
+    }
+    foreach ($tables as $table_title => $records) {
+        $tables_html .= "<table>";
+        $tables_html .= "<tr><td colspan=\"9\" class=\"table-title\">{$table_title}</td></tr>";
+
+        $tables_html .= "<tr class=\"column-name\">";
+        foreach (['VESSEL', 'VOY', 'STF/CLS', 'ETD', 'VES CONNECTING', 'VOY CONNECTING', 'ETD', 'CONNECTING CITY', 'ETA'] as $thead) {
+            $tables_html .= "<td>{$thead}</td>";
+        }
+        $tables_html .= "</tr>";
+
+        foreach ($records as $record) {
+            $tables_html .= "<tr class=\"data\">";
+            foreach (['vessel', 'voy_vessel', 'stf_cls', 'etd_jkt', 'connecting_vessel', 'voy_con', 'etd_con', 'etd_city_con_name', 'eta'] as $attribute) {
+                if (in_array($attribute, ['stf_cls', 'etd_jkt', 'etd_con', 'eta'])) $record->$attribute = date('d M', strtotime($record->$attribute));
+                if ('etd_city_con_name' == $attribute) $record->$attribute = substr($record->$attribute, 0, 3);
+                $tables_html .= "<td>{$record->$attribute}</td>";
+            }
+            $tables_html .= "</tr>";
+        }
+
+        $tables_html .= "</table>";
+    }
+
+    $direct = $schedule->data[0]->direct;
+    foreach (array_values(array_unique(array_map(function ($record) {
+        return $record->destination_name;
+    }, $direct))) as $table_title) {
+        $tables[$table_title] = array_values(array_filter($direct, function ($record) use ($table_title) {
+            return $table_title = $record->destination_name;
+        }));
+    }
+
     return "
         <table width=\"100%\" class=\"gatewaycl-export-schedule\">
             <tr class=\"gatewaycl-export-schedule-form\">
@@ -206,7 +250,19 @@ add_shortcode('gatewaycl-export-schedule', function () {
                     The estimated schedule is considered for information purpose only and the Carrier may update, revise this schedule from time to time without any prior notice.
                 </td>
             </tr>
-            <tr class=\"gatewaycl-export-schedule-tables\"></tr>
+            <tr class=\"gatewaycl-export-schedule-tables\">
+                <td>{$tables_html}</td>
+            </tr>
         </table>
     ";
 });
+
+function gateway_cl_get_schedule()
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://gateway-cl.com/api/schedule?X-API-KEY=gateway-fms");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    $json = curl_exec($ch);
+    curl_close($ch);
+    return json_decode($json);
+}
