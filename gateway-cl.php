@@ -27,7 +27,7 @@ add_shortcode('gatewaycl-tracking', function () {
     $tracking_result = '';
     $code = '';
 
-    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 1);
+    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 3);
     wp_enqueue_style('gateway-cl');
 
     if (isset($_POST['search'])) {
@@ -142,7 +142,7 @@ add_shortcode('gatewaycl-tracking', function () {
 });
 
 add_shortcode('gatewaycl-tracking-widget', function () {
-    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 1);
+    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 3);
     wp_enqueue_style('gateway-cl');
     $tracking_page_url = GATEWAY_CL_TRACKING_PAGE;
     return "
@@ -166,12 +166,17 @@ add_shortcode('gatewaycl-tracking-widget', function () {
 });
 
 add_shortcode('gatewaycl-export-schedule', function () {
-    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 1);
+    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 3);
     wp_enqueue_style('gateway-cl');
 
     $month_year = date('F Y', time());
 
-    $schedule = gateway_cl_get_schedule();
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, "https://gateway-cl.com/api/schedule?X-API-KEY=gateway-fms");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    $json = curl_exec($ch);
+    curl_close($ch);
+    $schedule = json_decode($json);
     $tables_via = [];
     $tables_direct = [];
     $tables_html = '';
@@ -283,12 +288,92 @@ add_shortcode('gatewaycl-export-schedule', function () {
     ";
 });
 
-function gateway_cl_get_schedule()
-{
+add_shortcode('gatewaycl-import-schedule', function () {
+    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 3);
+    wp_enqueue_style('gateway-cl');
+
+    $month_year = date('F Y', time());
+
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "https://gateway-cl.com/api/schedule?X-API-KEY=gateway-fms");
+    curl_setopt($ch, CURLOPT_URL, "https://gateway-cl.com/api/schedule_import?X-API-KEY=gateway-fms");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     $json = curl_exec($ch);
     curl_close($ch);
-    return json_decode($json);
-}
+    $schedule = json_decode($json);
+    $tables_direct = [];
+    $tables_html = '';
+
+    $direct = $schedule->data[0]->direct;
+    foreach (array_values(array_unique(array_map(function ($record) {
+        return $record->origin_name;
+    }, $direct))) as $table_title) {
+        $tables_direct[$table_title] = array_values(array_filter($direct, function ($record) use ($table_title) {
+            return $table_title == $record->origin_name;
+        }));
+    }
+    foreach ($tables_direct as $table_title => $records) {
+        $tables_html .= "<table class=\"table-direct\">";
+        $tables_html .= "<tr><td colspan=\"5\" class=\"table-title\">{$table_title}</td></tr>";
+
+        $tables_html .= "<tr class=\"column-name\">";
+        foreach (['VESSEL', 'VOY', 'CUT OFF CFS	', 'ETD', 'ETA'] as $thead) {
+            $tables_html .= "<td>{$thead}</td>";
+        }
+        $tables_html .= "</tr>";
+
+        foreach ($records as $record) {
+            $tables_html .= "<tr class=\"data\" data-origin_name = \"$record->origin_name\" data-region_id = \"$record->region_id\" data-eta = \"$record->eta\">";
+            foreach (['vessel', 'voyage', 'closing_date', 'etd', 'eta'] as $attribute) {
+                if (in_array($attribute, ['closing_date', 'etd', 'eta'])) $record->$attribute = date('d M', strtotime($record->$attribute));
+                $tables_html .= "<td>{$record->$attribute}</td>";
+            }
+            $tables_html .= "</tr>";
+        }
+
+        $tables_html .= "</table>";
+    }
+
+    wp_register_script('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.js', ['jquery'], 1);
+    wp_enqueue_script('gateway-cl');
+
+    return "
+        <table width=\"100%\" class=\"gatewaycl-import-schedule\">
+            <tr class=\"gatewaycl-import-schedule-form\">
+                <td>
+                    <select name=\"origin_name\">
+                        <option value=\"\">Please Select POL</option>
+                    </select>
+                    <select name=\"region_id\">
+                        <option value=\"\">Please Select POD</option>
+                    </select>
+                    <select name=\"eta\">
+                        <option value=\"\">Select ETA</option>
+                    </select>
+                    <input type=\"submit\" name=\"search\" value=\"Search\">
+                    <input type=\"reset\" value=\"Reset\">
+                </td>
+            </tr>
+            <tr class=\"gatewaycl-import-schedule-month-year\">
+                <td><h3>{$month_year}</h3></td>
+            </tr>
+            <tr class=\"gatewaycl-import-schedule-departure\">
+                <td>
+                    <div>
+                        Port of Destination
+                        <select name=\"port_of_destination\">
+                            <option value=\"\">Select POD</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr class=\"gatewaycl-import-schedule-static-message\">
+                <td>
+                    The estimated schedule is considered for information purpose only and the Carrier may update, revise this schedule from time to time without any prior notice.
+                </td>
+            </tr>
+            <tr class=\"gatewaycl-import-schedule-tables\">
+                <td>{$tables_html}</td>
+            </tr>
+        </table>
+    ";
+});

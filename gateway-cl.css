@@ -34,7 +34,9 @@ table#gatewaycl_tracking [name="code"] {
 
 table#gatewaycl_tracking [name="search"],
 table.gatewaycl-export-schedule [type="submit"],
-table.gatewaycl-export-schedule [type="reset"] {
+table.gatewaycl-export-schedule [type="reset"],
+table.gatewaycl-import-schedule [type="submit"],
+table.gatewaycl-import-schedule [type="reset"] {
     background-color: #fef001;
     color: #214099;
     padding: 5px 10px;
@@ -58,6 +60,7 @@ table.gatewaycl-export-schedule [type="reset"] {
     vertical-align: baseline;
 }
 
+/* EXPORT */
 .gatewaycl-export-schedule-form {
     text-align: center;
 }
@@ -117,4 +120,58 @@ table.gatewaycl-export-schedule select {
 
 .gatewaycl-export-schedule-tables td table:nth-child(even) {
     float: left;
+}
+
+/* IMPORT */
+.gatewaycl-import-schedule-form {
+    text-align: center;
+}
+
+table.gatewaycl-import-schedule select {
+    padding: 12px;
+}
+
+.gatewaycl-import-schedule-month-year td {
+    text-align: center;
+    padding: 20px 0 0;
+}
+
+.gatewaycl-import-schedule-departure td {
+    padding: 0 30%;
+    text-align: center;
+}
+
+.gatewaycl-import-schedule-departure div {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    padding: 20px 0;
+}
+
+.gatewaycl-import-schedule-static-message {
+    color: red;
+}
+
+.gatewaycl-import-schedule-tables table td {
+    border: 1px solid black;
+}
+
+.gatewaycl-import-schedule-tables .table-title {
+    text-align: center;
+    background-color: #fef001;
+    font-weight: bolder;
+}
+
+.gatewaycl-import-schedule-tables .column-name {
+    background-color: #214099;
+    color: white;
+    text-align: center;
+}
+
+.gatewaycl-import-schedule-tables .data td {
+    text-align: center;
+}
+
+.gatewaycl-import-schedule-tables .table-direct {
+    width: 49%;
+    display: inline-flex;
 }
