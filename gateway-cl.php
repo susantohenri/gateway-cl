@@ -181,9 +181,10 @@ add_shortcode('gatewaycl-export-schedule', function () {
         return $record->destination_name;
     }, $via))) as $table_title) {
         $tables_via[$table_title] = array_values(array_filter($via, function ($record) use ($table_title) {
-            return $table_title = $record->destination_name;
+            return $table_title == $record->destination_name;
         }));
     }
+
     foreach ($tables_via as $table_title => $records) {
         $tables_html .= "<table>";
         $tables_html .= "<tr><td colspan=\"9\" class=\"table-title\">{$table_title}</td></tr>";
@@ -195,7 +196,7 @@ add_shortcode('gatewaycl-export-schedule', function () {
         $tables_html .= "</tr>";
 
         foreach ($records as $record) {
-            $tables_html .= "<tr class=\"data\">";
+            $tables_html .= "<tr class=\"data\" data-origin_name = \"$record->origin_name\" data-destination_name = \"$record->destination_name\" data-etd = \"$record->etd_jkt\">";
             foreach (['vessel', 'voy_vessel', 'stf_cls', 'etd_jkt', 'connecting_vessel', 'voy_con', 'etd_con', 'etd_city_con_name', 'eta'] as $attribute) {
                 if (in_array($attribute, ['stf_cls', 'etd_jkt', 'etd_con', 'eta'])) $record->$attribute = date('d M', strtotime($record->$attribute));
                 if ('etd_city_con_name' == $attribute) $record->$attribute = substr($record->$attribute, 0, 3);
@@ -212,7 +213,7 @@ add_shortcode('gatewaycl-export-schedule', function () {
         return $record->destination_name;
     }, $direct))) as $table_title) {
         $tables_direct[$table_title] = array_values(array_filter($direct, function ($record) use ($table_title) {
-            return $table_title = $record->destination_name;
+            return $table_title == $record->destination_name;
         }));
     }
     foreach ($tables_direct as $table_title => $records) {
@@ -226,7 +227,7 @@ add_shortcode('gatewaycl-export-schedule', function () {
         $tables_html .= "</tr>";
 
         foreach ($records as $record) {
-            $tables_html .= "<tr class=\"data\">";
+            $tables_html .= "<tr class=\"data\" data-origin_name = \"$record->origin_name\" data-destination_name = \"$record->destination_name\" data-etd = \"$record->etd\">";
             foreach (['vessel', 'voyage', 'closing_date', 'etd', 'eta'] as $attribute) {
                 if (in_array($attribute, ['closing_date', 'etd', 'eta'])) $record->$attribute = date('d M', strtotime($record->$attribute));
                 $tables_html .= "<td>{$record->$attribute}</td>";
@@ -237,18 +238,21 @@ add_shortcode('gatewaycl-export-schedule', function () {
         $tables_html .= "</table>";
     }
 
+    wp_register_script('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.js', ['jquery'], 1);
+    wp_enqueue_script('gateway-cl');
+
     return "
         <table width=\"100%\" class=\"gatewaycl-export-schedule\">
             <tr class=\"gatewaycl-export-schedule-form\">
                 <td>
                     <select name=\"origin_name\">
-                        <option value=\"JAKARTA\">JAKARTA</option>
+                        <option value=\"\">DEPARTURE</option>
                     </select>
                     <select name=\"destination_name\">
-                        <option value=\"SYDNEY\">SYDNEY</option>
+                        <option value=\"\">DESTINATION</option>
                     </select>
                     <select name=\"etd\">
-                        <option value=\"04-05-2024\">04-05-2024</option>
+                        <option value=\"\">ETD</option>
                     </select>
                     <input type=\"submit\" name=\"search\" value=\"Search\">
                     <input type=\"reset\" value=\"Reset\">
@@ -261,8 +265,8 @@ add_shortcode('gatewaycl-export-schedule', function () {
                 <td>
                     <div>
                         Departure From
-                        <select name=\"origin_name\">
-                            <option value=\"JAKARTA\">JAKARTA</option>
+                        <select name=\"departure_from\">
+                            <option value=\"\">DEPARTURE</option>
                         </select>
                     </div>
                 </td>

@@ -108,6 +108,7 @@ table.gatewaycl-export-schedule select {
 
 .gatewaycl-export-schedule-tables .table-direct {
     width: 49%;
+    min-height: 300px;
 }
 
 .gatewaycl-export-schedule-tables td table:nth-child(odd) {
