@@ -21,6 +21,7 @@
  */
 
 define('GATEWAY_CL_TRACKING_PAGE', site_url('tracking'));
+define('GATEWAY_CL_IMPORT_SCHEDULE_PAGE', site_url('import-schedule'));
 
 add_shortcode('gatewaycl-tracking', function () {
     $message = '';
@@ -148,10 +149,10 @@ add_shortcode('gatewaycl-tracking-widget', function () {
     return "
         <table width=\"100%\" id=\"gatewaycl_tracking\">
             <tr>
-                <td colspan=\"3\">Tracking Shipment</td>
+                <td>Tracking Shipment</td>
             </tr>
             <tr>
-                <td colspan=\"3\">
+                <td>
                     <form method=\"POST\" action=\"{$tracking_page_url}\">
                         <input type=\"text\" name=\"code\" placeholder=\"Tracking Code\" required>
                         <input type=\"submit\" name=\"search\" value=\"Search\">
@@ -159,7 +160,7 @@ add_shortcode('gatewaycl-tracking-widget', function () {
                 </td>
             </tr>
             <tr>
-                <td colspan=\"3\">&nbsp;</td>
+                <td>&nbsp;</td>
             </tr>
         </table>
     ";
@@ -288,22 +289,27 @@ add_shortcode('gatewaycl-export-schedule', function () {
     ";
 });
 
-add_shortcode('gatewaycl-import-schedule', function () {
-    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 3);
-    wp_enqueue_style('gateway-cl');
-
-    $month_year = date('F Y', time());
-
+function gatewaycl_get_import_schedule_direct()
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, "https://gateway-cl.com/api/schedule_import?X-API-KEY=gateway-fms");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     $json = curl_exec($ch);
     curl_close($ch);
     $schedule = json_decode($json);
+
+    return $schedule->data[0]->direct;
+}
+
+add_shortcode('gatewaycl-import-schedule', function () {
+    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 3);
+    wp_enqueue_style('gateway-cl');
+
+    $month_year = date('F Y', time());
     $tables_direct = [];
     $tables_html = '';
+    $direct = gatewaycl_get_import_schedule_direct();
 
-    $direct = $schedule->data[0]->direct;
     foreach (array_values(array_unique(array_map(function ($record) {
         return $record->origin_name;
     }, $direct))) as $table_title) {
@@ -335,6 +341,15 @@ add_shortcode('gatewaycl-import-schedule', function () {
 
     wp_register_script('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.js', ['jquery'], 1);
     wp_enqueue_script('gateway-cl');
+    if (isset($_POST['search'])) {
+        wp_localize_script(
+            'gateway-cl',
+            'gateway_cl',
+            array(
+                'post' => $_POST,
+            )
+        );
+    }
 
     return "
         <table width=\"100%\" class=\"gatewaycl-import-schedule\">
@@ -373,6 +388,61 @@ add_shortcode('gatewaycl-import-schedule', function () {
             </tr>
             <tr class=\"gatewaycl-import-schedule-tables\">
                 <td>{$tables_html}</td>
+            </tr>
+        </table>
+    ";
+});
+
+add_shortcode('gatewaycl-import-schedule-widget', function () {
+    wp_register_style('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.css', [], 3);
+    wp_enqueue_style('gateway-cl');
+
+    $data = array_map(function ($rec) {
+        return [
+            'origin_name' => $rec->origin_name,
+            'region_id' => $rec->region_id,
+            'eta' => $rec->eta
+        ];
+    }, gatewaycl_get_import_schedule_direct());
+    wp_register_script('gateway-cl', plugin_dir_url(__FILE__) . 'gateway-cl.js', ['jquery'], 1);
+    wp_enqueue_script('gateway-cl');
+    wp_localize_script(
+        'gateway-cl',
+        'gateway_cl',
+        array(
+            'data' => $data,
+        )
+    );
+
+    $tracking_import_shcedule_page_url = GATEWAY_CL_IMPORT_SCHEDULE_PAGE;
+    $month_year = date('F Y', time());
+    return "
+        <table width=\"100%\" id=\"gatewaycl_widget_import_schedule\">
+            <tr>
+                <td><h2>Monthly Schedule</h2></td>
+            </tr>
+            <tr>
+                <td><h3>{$month_year}<h3></td>
+            </tr>
+            <tr>
+                <td>
+                    <form method=\"POST\" action=\"{$tracking_import_shcedule_page_url}\">
+                        <select name=\"origin_name\">
+                            <option value=\"\">Please Select POL</option>
+                        </select>
+                        <select name=\"region_id\">
+                            <option value=\"\">Please Select POD</option>
+                        </select>
+                        <select name=\"eta\">
+                            <option value=\"\">Select ETA</option>
+                        </select>
+                        <input type=\"submit\" name=\"search\" value=\"Search\">
+                        <input type=\"reset\" value=\"Reset\">
+                    </form>
+                </td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
             </tr>
         </table>
     ";

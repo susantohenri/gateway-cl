@@ -149,7 +149,7 @@ function import_update_dropdown_eta() {
     const etas = gatewaycl_import_schedule_data
         .filter(data => {
             return data.origin_name == gatewaycl_import_schedule_dropdowns.origin_name.val()
-                && data.region_id == gatewaycl_import_schedule_dropdowns.region_id.val()
+            // && data.region_id == gatewaycl_import_schedule_dropdowns.region_id.val()
         })
         .map(data => {
             return data.eta
@@ -198,3 +198,60 @@ gatewaycl_import_schedule.find(`[type="reset"]`).click(e => {
     gatewaycl_import_schedule_rows.show()
     gatewaycl_import_schedule_tables.show()
 })
+
+if (0 < gatewaycl_import_schedule.length) {
+    gatewaycl_import_schedule_dropdowns.origin_name.val(gateway_cl.post.origin_name).change()
+    gatewaycl_import_schedule_dropdowns.region_id.val(gateway_cl.post.region_id)
+    gatewaycl_import_schedule_dropdowns.eta.val(gateway_cl.post.eta)
+    gatewaycl_import_schedule.find(`[name="search"]`).click()
+}
+
+/* WIDGET IMPORT SCHEDULE */
+const gatewaycl_widget_import_schedule = jQuery(`#gatewaycl_widget_import_schedule`)
+if (0 < gatewaycl_widget_import_schedule.length) {
+    const gatewaycl_widget_import_schedule_dropdowns = {
+        origin_name: gatewaycl_widget_import_schedule.find(`select[name="origin_name"]`),
+        region_id: gatewaycl_widget_import_schedule.find(`select[name="region_id"]`),
+        eta: gatewaycl_widget_import_schedule.find(`select[name="eta"]`),
+    }
+    const widget_import_import_origin_names = gateway_cl.data
+        .map(row => {
+            return row.origin_name
+        })
+        .filter((v, i, a) => a.indexOf(v) == i)
+        .map(opt => {
+            return `<option value="${opt}">${opt}</option>`
+        })
+    gatewaycl_widget_import_schedule_dropdowns.origin_name
+        .append(widget_import_import_origin_names)
+        .change(import_update_dropdown_eta)
+
+    const widget_import_region_ids = gateway_cl.data
+        .map(data => {
+            return data.region_id
+        })
+        .filter((v, i, a) => a.indexOf(v) == i)
+        .map(opt => {
+            return `<option value="${opt}">${opt}</option>`
+        })
+    gatewaycl_widget_import_schedule_dropdowns.region_id
+        .append(widget_import_region_ids)
+        .change(import_update_dropdown_eta)
+
+    function import_update_dropdown_eta() {
+        const widget_import_etas = gateway_cl.data
+            .filter(data => {
+                return data.origin_name == gatewaycl_widget_import_schedule_dropdowns.origin_name.val()
+                // && data.region_id == gatewaycl_widget_import_schedule_dropdowns.region_id.val()
+            })
+            .map(data => {
+                return data.eta
+            })
+            .filter((v, i, a) => a.indexOf(v) == i)
+            .map(opt => {
+                return `<option value="${opt}">${opt}</option>`
+            })
+        gatewaycl_widget_import_schedule_dropdowns.eta
+            .html([`<option value="">Select ETA</option>`, ...widget_import_etas])
+    }
+}

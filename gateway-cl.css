@@ -36,7 +36,9 @@ table#gatewaycl_tracking [name="search"],
 table.gatewaycl-export-schedule [type="submit"],
 table.gatewaycl-export-schedule [type="reset"],
 table.gatewaycl-import-schedule [type="submit"],
-table.gatewaycl-import-schedule [type="reset"] {
+table.gatewaycl-import-schedule [type="reset"],
+#gatewaycl_widget_import_schedule [type="submit"],
+#gatewaycl_widget_import_schedule [type="reset"] {
     background-color: #fef001;
     color: #214099;
     padding: 5px 10px;
@@ -174,4 +176,12 @@ table.gatewaycl-import-schedule select {
 .gatewaycl-import-schedule-tables .table-direct {
     width: 49%;
     display: inline-flex;
+}
+
+#gatewaycl_widget_import_schedule {
+    text-align: center;
+}
+
+#gatewaycl_widget_import_schedule select {
+    padding: 12px;
 }
